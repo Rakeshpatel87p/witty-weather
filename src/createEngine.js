@@ -1,3 +1,8 @@
+// Create story board
+// Map onto functions
+// Successfully Make API calls - return right data
+// Upload onto FB Messenger
+
 const { Wit } = require('node-wit');
 const { WIT_TOKEN, WEATHER_APPID } = require('./config');
 const fetch = require('isomorphic-fetch');
@@ -32,27 +37,27 @@ function fahrenheit(kelvin) {
 
 function getWeather(loc) {
     return fetch(
-    'https://maps.googleapis.com/maps/api/directions/json?origin=' + loc + '&destination=Mableton4&key=AIzaSyA_2lY9VZ5_ohmSOkdvaDN2cGryDcecwmU'
-).then(res => res.json())
+    'http://api.openweathermap.org/data/2.5/weather?' +
+    `q=${loc}&appid=${WEATHER_APPID}`        
+    ).then(res => res.json())
 };
 
-// 'http://api.openweathermap.org/data/2.5/weather?' + `q=${loc}&appid=${WEATHER_APPID}`
+        // let directionDetails = request.get({
+        //     method: 'GET',
+        //     uri: 'https://maps.googleapis.com/maps/api/directions/json',
+        //     // Is this proper? For https://maps.googleapis.com/maps/api/directions/json?origin=aaa?destination=bbb?key=
+        //     qs: {
+        //         origin: loc,
+        //         destination: 'Orlando',
+        //         key: 'AIzaSyA_2lY9VZ5_ohmSOkdvaDN2cGryDcecwmU'
+        //     },
 
-// const directionDetails = request.get({
-//     uri: 'https://maps.googleapis.com/maps/api/directions/json',
-//     method: 'GET',
-//     // Is this proper? For https://maps.googleapis.com/maps/api/directions/json?origin=aaa?destination=bbb?key=
-//     qs: {
-//         origin: loc,
-//         destination: 'Orlando',
-//         key: 'AIzaSyA_2lY9VZ5_ohmSOkdvaDN2cGryDcecwmU'
-//     },
+    // }, (response, err) => {
+    //     if (err) return console.log(err);
+    //     console.log('response', response);
 
-// }, (response, err) => {
-//     console.log('response', response, 'error', err);
+    // });
 
-// }
-// );
 
 const firstEntityValue = (entities, name) => {
     const val = entities && entities[name] &&
@@ -103,12 +108,14 @@ function wrapActions(actions, cb) {
     );
 }
 
-function fetchWeather({ context, entities }) {
+function fetchBestRoute({ context, entities }) {
+    console.log('this is the context___________', context);
+    console.log('this is the entities__________', entities);
     const location = firstEntityValue(entities, 'location');
     if (!location) return Promise.resolve(noLocation(context));
     return getWeather(location).then(
         res => {
-            console.log('THIS IS RESPONSE FROM API CALL_________', res.routes);
+            console.log('THIS IS RESPONSE FROM API CALL_________', res);
             // return withLocation(
             //     withForecast(context, forecastFor(res)),
             //     locationFor(res)
@@ -123,7 +130,7 @@ const actions = {
         console.log('sending...', JSON.stringify(response));
         return Promise.resolve();
     },
-    fetchWeather
+    fetchBestRoute
 };
 
 // ------------------------------------------------------------
