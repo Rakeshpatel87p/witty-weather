@@ -36,7 +36,8 @@ app.get('/chat', (req, res) => {
     getContext(sessionId)
   ).then(
     context => {
-      console.log('context', context);
+      // Context should not be returning an empty which it currently is
+      console.log('this is the context-------', context);
       console.log('actions', actions);
       res.status(200).json({context, actions});
       setContext(sessionId, context)

@@ -6,7 +6,7 @@
 const { Wit } = require('node-wit');
 const { WIT_TOKEN, WEATHER_APPID } = require('./config');
 const fetch = require('isomorphic-fetch');
-const request = require('request');
+// const request = require('request');
 
 // ------------------------------------------------------------
 // Helpers
@@ -23,41 +23,23 @@ function mapObject(obj, f) {
         );
 }
 
-function forecastFor(apiRes) {
-    return `${fahrenheit(apiRes.main.temp)}, ${apiRes.weather[0].description}`
-}
+// function forecastFor(apiRes) {
+//     return `${fahrenheit(apiRes.main.temp)}, ${apiRes.weather[0].description}`
+// }
 
-function locationFor(apiRes) {
-    return apiRes.name;
-}
+// function locationFor(apiRes) {
+//     return apiRes.name;
+// }
 
-function fahrenheit(kelvin) {
-    return `${Math.round(kelvin * 9/5 - 459.67)} °F`
-}
+// function fahrenheit(kelvin) {
+//     return `${Math.round(kelvin * 9/5 - 459.67)} °F`
+// }
 
-function getWeather(loc) {
+function getRoute(loc) {
     return fetch(
-    'http://api.openweathermap.org/data/2.5/weather?' +
-    `q=${loc}&appid=${WEATHER_APPID}`        
+        'https://maps.googleapis.com/maps/api/directions/json?origin=Atlanta&destination=' + loc + '&key=AIzaSyA_2lY9VZ5_ohmSOkdvaDN2cGryDcecwmU'
     ).then(res => res.json())
-};
-
-        // let directionDetails = request.get({
-        //     method: 'GET',
-        //     uri: 'https://maps.googleapis.com/maps/api/directions/json',
-        //     // Is this proper? For https://maps.googleapis.com/maps/api/directions/json?origin=aaa?destination=bbb?key=
-        //     qs: {
-        //         origin: loc,
-        //         destination: 'Orlando',
-        //         key: 'AIzaSyA_2lY9VZ5_ohmSOkdvaDN2cGryDcecwmU'
-        //     },
-
-    // }, (response, err) => {
-    //     if (err) return console.log(err);
-    //     console.log('response', response);
-
-    // });
-
+}
 
 const firstEntityValue = (entities, name) => {
     const val = entities && entities[name] &&
@@ -87,10 +69,10 @@ const withLocation = (ctx, loc) => {
     return ctx;
 }
 
-const withForecast = (ctx, forecast) => {
-    ctx.forecast = forecast;
-    return ctx;
-}
+// const withForecast = (ctx, forecast) => {
+//     ctx.forecast = forecast;
+//     return ctx;
+// }
 
 const withAPIError = (ctx, err) => {
     ctx.apiError = true
@@ -109,13 +91,16 @@ function wrapActions(actions, cb) {
 }
 
 function fetchBestRoute({ context, entities }) {
-    console.log('this is the context___________', context);
-    console.log('this is the entities__________', entities);
     const location = firstEntityValue(entities, 'location');
     if (!location) return Promise.resolve(noLocation(context));
-    return getWeather(location).then(
+    return getRoute(location).then(
         res => {
-            console.log('THIS IS RESPONSE FROM API CALL_________', res);
+            for (var i = 0; i < res.routes.length; i++) {
+                let routeSummaryReturned = res.routes[i].summary;
+                console.log('routeSummaryReturned variable', routeSummaryReturned)
+                return context.routeSummary = routeSummaryReturned
+            };
+            // return res.routes[0].summary;
             // return withLocation(
             //     withForecast(context, forecastFor(res)),
             //     locationFor(res)
@@ -127,7 +112,8 @@ function fetchBestRoute({ context, entities }) {
 
 const actions = {
     send(request, response) {
-        console.log('sending...', JSON.stringify(response));
+        console.log('this is the response', response);
+        // console.log('sending...', JSON.stringify(response));
         return Promise.resolve();
     },
     fetchBestRoute
