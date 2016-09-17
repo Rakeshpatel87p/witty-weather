@@ -1,7 +1,5 @@
 // Create story board
 // Map onto functions
-// Successfully Make API calls - return right data
-// Upload onto FB Messenger
 
 const { Wit } = require('node-wit');
 const { WIT_TOKEN, WEATHER_APPID } = require('./config');
@@ -36,8 +34,10 @@ function mapObject(obj, f) {
 // }
 
 function getRoute(loc) {
+    var url = 'https://maps.googleapis.com/maps/api/directions/json?origin=Atlanta&destination=' + loc + '&key=AIzaSyA_2lY9VZ5_ohmSOkdvaDN2cGryDcecwmU';
+    console.log(url, 'URL');
     return fetch(
-        'https://maps.googleapis.com/maps/api/directions/json?origin=Atlanta&destination=' + loc + '&key=AIzaSyA_2lY9VZ5_ohmSOkdvaDN2cGryDcecwmU'
+        url
     ).then(res => res.json())
 }
 
@@ -46,6 +46,8 @@ const firstEntityValue = (entities, name) => {
         Array.isArray(entities[name]) &&
         entities[name].length > 0 &&
         entities[name][0].value;
+    console.log('entities[name] or whatever that means-------', entities[name]);
+    console.log('what are entities?-----------', entities);
     if (!val) {
         return null;
     }
@@ -84,6 +86,7 @@ function wrapActions(actions, cb) {
         actions,
         (f, k) => function() {
             const args = [].slice.call(arguments);
+            console.log('these are the args---------', args);
             cb({ name: k, args })
             return f.apply(null, arguments);
         }
@@ -91,15 +94,23 @@ function wrapActions(actions, cb) {
 }
 
 function fetchBestRoute({ context, entities }) {
+
     const location = firstEntityValue(entities, 'location');
     if (!location) return Promise.resolve(noLocation(context));
+
     return getRoute(location).then(
         res => {
-            for (var i = 0; i < res.routes.length; i++) {
-                let routeSummaryReturned = res.routes[i].summary;
-                console.log('routeSummaryReturned variable', routeSummaryReturned)
-                return context.routeSummary = routeSummaryReturned
-            };
+            // console.log("Code reached", res);
+            // Tried changing to var/let
+            const routeSummaryReturned = res.routes[0].summary;
+            context.routeSummary = routeSummaryReturned
+            return context;
+
+            // Tried looping and returning a single value.
+            // for (var i = 0; i < res.routes.length; i++) {
+            //     const routeSummaryReturned = res.routes[i].summary;
+            //     return context.routeSummary = routeSummaryReturned
+            // };
             // return res.routes[0].summary;
             // return withLocation(
             //     withForecast(context, forecastFor(res)),
@@ -113,7 +124,8 @@ function fetchBestRoute({ context, entities }) {
 const actions = {
     send(request, response) {
         console.log('this is the response', response);
-        // console.log('sending...', JSON.stringify(response));
+        console.log('stringified-------', JSON.stringify(response))
+            // console.log('sending...', JSON.stringify(response));
         return Promise.resolve();
     },
     fetchBestRoute

@@ -103,6 +103,7 @@ class LogMessage extends React.Component {
     message: PropTypes.string.isRequired,
   }
   render() {
+
     const {type, payload} = this.props.message;
     switch (type) {
       case 'user':
